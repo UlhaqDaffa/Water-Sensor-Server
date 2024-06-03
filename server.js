@@ -9,15 +9,15 @@ import bcrypt from 'bcrypt';
 
 
 const app = express();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 
-//middleware
+// Middleware
 app.use(express.json());
 app.use(morgan('dev'));
 app.use(bodyParser.urlencoded({ extended: true }));
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 
 // Function untuk simpan data ke table
@@ -40,10 +40,10 @@ const saveSensorPHData = async (data) => {
     const { sensor_id, timestamp, ph_value } = data;
 
     await db.query(
-      'INSERT INTO sensor_PH (sensor_id, timestamp, ph_value) VALUES ($1, $2, $3)',
+      'INSERT INTO ph_sensor (sensor_id, timestamp, ph_value) VALUES ($1, $2, $3)',
       [sensor_id, timestamp, ph_value]
     );
-  } catch (error) {
+  } catch (error) {   
     console.error(error);
     throw new Error('Gagal menyimpan data sensor_PH');
   }
@@ -83,16 +83,16 @@ client.on('message', async function (topic, message) {
   try {
     const data = JSON.parse(message.toString());
     switch (topic) {
-      case 'home/topic/sensors/acceleration':
+      case 'topic/sensors/acceleration':
         await saveAccelerationData(data);
         break;
-      case 'home/topic/sensors/sensor_PH':
+      case 'topic/sensors/sensor_PH':
         await saveSensorPHData(data);
         break;
-      case 'home/topic/sensors/turbidity':
+      case 'topic/sensors/turbidity':
         await saveTurbidityData(data);
         break;
-      case 'home/topic/sensors/temperature':
+      case 'topic/sensors/temperature':
         await saveTemperatureData(data);
         break;
       default:
@@ -103,8 +103,20 @@ client.on('message', async function (topic, message) {
   }
 });
 
+// API endpoint untuk fetch data
+app.get('/api/data/:table', async (req, res) => {
+  try {
+    const { table } = req.params;
+    const result = await db.query(`SELECT * FROM ${table}`);
+    res.json(result.rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
-//routes
+
+// Routes
 app.get('/home', (req, res) => {
   res.sendFile(path.join(__dirname, '../client', 'index.html'));
 });
@@ -113,7 +125,7 @@ app.get('/dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, '../client', 'index.html'));
 });
 
-app.post('/login', async (req, res) => {
+app.post('/dashboard/login', async (req, res) => {
   const { username, password } = req.body;
 
   try {
@@ -139,22 +151,22 @@ app.get('/about', (req, res) => {
   res.sendFile(path.join(__dirname, '../client', 'index.html'));
 });
 
-
-//test-db
-app.get('/testdb', async (req, res) => {
-  try {
-    const result = await db.query(
-        'SELECT * FROM acceleration'
-    );
-    res.json(result.rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Internal Server Error');
-  }
-});
+// //test-db
+// app.get('/testdb', async (req, res) => {
+//   try {
+//     const result = await db.query(
+//       `SELECT * FROM acceleration`
+//     );
+//     console.log(result.rows);
+//     res.json(result.rows);
+//     console.error(err);
+//    } catch (err) {
+//    res.status(500).send('Internal Server Error');
+//   }
+// });
 
 const port = process.env.PORT || 3000;
 
 app.listen(port, () => {
-  console.log('Server is running on port 3000');
+  console.log('Server pada port 3000');
 });
