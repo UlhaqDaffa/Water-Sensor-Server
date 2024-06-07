@@ -1,0 +1,99 @@
+import db from './db.js';
+import client  from './mqttService.js'; 
+import bcrypt from 'bcrypt';
+
+// Function untuk simpan data ke table
+const saveAccelerationData = async (data) => {
+    try {
+      const { sensor_id, timestamp, acceleration_x, acceleration_y, acceleration_z } = data;
+  
+      await db.query(
+        'INSERT INTO acceleration (sensor_id, timestamp, acceleration_x, acceleration_y, acceleration_z) VALUES ($1, $2, $3, $4, $5)',
+        [sensor_id, timestamp, acceleration_x, acceleration_y, acceleration_z]
+      );
+    } catch (error) {
+      console.error(error);
+      throw new Error('Gagal menyimpan data acceleration');
+    }
+  };
+  
+  const saveSensorPHData = async (data) => {
+    try {
+      const { sensor_id, timestamp, ph_value } = data;
+  
+      await db.query(
+        'INSERT INTO ph_sensor (sensor_id, timestamp, ph_value) VALUES ($1, $2, $3)',
+        [sensor_id, timestamp, ph_value]
+      );
+    } catch (error) {   
+      console.error(error);
+      throw new Error('Gagal menyimpan data sensor_PH');
+    }
+  };
+  
+  const saveTurbidityData = async (data) => {
+    try {
+      const { sensor_id, timestamp, turbidity_value } = data;
+  
+      await db.query(
+        'INSERT INTO turbidity (sensor_id, timestamp, turbidity_value) VALUES ($1, $2, $3)',
+        [sensor_id, timestamp, turbidity_value]
+      );
+    } catch (error) {
+      console.error(error);
+      throw new Error('Gagal menyimpan data turbidity');
+    }
+  };
+  
+  const saveTemperatureData = async (data) => {
+    try {
+      const { sensor_id, timestamp, temperature_value } = data;
+  
+      await db.query(
+        'INSERT INTO temperature (sensor_id, timestamp, temperature_value) VALUES ($1, $2, $3)',
+        [sensor_id, timestamp, temperature_value]
+      );
+    } catch (error) {
+      console.error(error);
+      throw new Error('Gagal menyimpan data temperature');
+    }
+  };
+
+// Callback Function untuk handling message dari broker
+client.on('message', async function (topic, message) {
+    try {
+      const data = JSON.parse(message.toString());
+      switch (topic) {
+        case 'topic/sensors/acceleration':
+          await saveAccelerationData(data);
+          break;
+        case 'topic/sensors/sensor_PH':
+          await saveSensorPHData(data);
+          break;
+        case 'topic/sensors/turbidity':
+          await saveTurbidityData(data);
+          break;
+        case 'topic/sensors/temperature':
+          await saveTemperatureData(data);
+          break;
+        default:
+          console.log('Topik tidak dikenali');
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  });
+
+  async function loginController(req, res, username, password) {
+    const result = await db.query('SELECT * FROM login WHERE username = $1', [username]);
+    if (result.rows.length === 0) {
+      return res.status(401).json({ message: 'Username atau password salah' });
+    } else {
+      const hashedPassword = result.rows[0].password;
+      const match = await bcrypt.compare(password, hashedPassword);
+      !match ? res.status(401).json({ message: 'Username atau password salah' }) : res.status(200).json({ message: 'Login Berhasil' });
+    }
+  }
+
+  export default loginController;
+  
