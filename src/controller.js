@@ -2,6 +2,7 @@ import db from './db.js';
 import client  from './mqttService.js'; 
 import bcrypt from 'bcrypt';
 
+
 // Function untuk simpan data ke table
 const saveAccelerationData = async (data) => {
     try {

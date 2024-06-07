@@ -51,5 +51,5 @@ app.post('/login', async (req, res) => {
 const port = process.env.PORT || 3000;
 
 app.listen(port, () => {
-  console.log('Server pada port 3000');
+  console.log('Server pada berjalan pada port 3000');
 });
