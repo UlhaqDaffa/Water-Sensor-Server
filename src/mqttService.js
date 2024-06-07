@@ -2,7 +2,6 @@ import mqtt  from 'mqtt';
 import dotenv from 'dotenv';
 dotenv.config();
 
-
 const options = {
     host: process.env.MQTT_HOST,
     port: process.env.MQTT_PORT,
