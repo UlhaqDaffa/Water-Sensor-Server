@@ -9,8 +9,8 @@ const saveAccelerationData = async (data) => {
       const { sensor_id, timestamp, acceleration_x, acceleration_y, acceleration_z } = data;
   
       await db.query(
-        'INSERT INTO acceleration (sensor_id, timestamp, acceleration_x, acceleration_y, acceleration_z) VALUES ($1, $2, $3, $4, $5)',
-        [sensor_id, timestamp, acceleration_x, acceleration_y, acceleration_z]
+        'INSERT INTO acceleration SET ?',
+        { id: sensor_id, timestamp: timestamp, acceleration_x: acceleration_x, acceleration_y: acceleration_y, acceleration_z: acceleration_z }
       );
     } catch (error) {
       console.error(error);
@@ -23,8 +23,8 @@ const saveAccelerationData = async (data) => {
       const { sensor_id, timestamp, ph_value } = data;
   
       await db.query(
-        'INSERT INTO ph_sensor (sensor_id, timestamp, ph_value) VALUES ($1, $2, $3)',
-        [sensor_id, timestamp, ph_value]
+        'INSERT INTO ph_sensor SET ?',
+        { id: sensor_id, timestamp: timestamp, ph_value: ph_value }
       );
     } catch (error) {   
       console.error(error);
@@ -37,8 +37,8 @@ const saveAccelerationData = async (data) => {
       const { sensor_id, timestamp, turbidity_value } = data;
   
       await db.query(
-        'INSERT INTO turbidity (sensor_id, timestamp, turbidity_value) VALUES ($1, $2, $3)',
-        [sensor_id, timestamp, turbidity_value]
+        'INSERT INTO turbidity SET ?',
+        { id: sensor_id, timestamp: timestamp, turbidity_value: turbidity_value }
       );
     } catch (error) {
       console.error(error);
@@ -51,8 +51,8 @@ const saveAccelerationData = async (data) => {
       const { sensor_id, timestamp, temperature_value } = data;
   
       await db.query(
-        'INSERT INTO temperature (sensor_id, timestamp, temperature_value) VALUES ($1, $2, $3)',
-        [sensor_id, timestamp, temperature_value]
+        'INSERT INTO temperature SET ?',
+        { id: sensor_id, timestamp: timestamp, temperature_value: temperature_value }
       );
     } catch (error) {
       console.error(error);
@@ -65,16 +65,16 @@ client.on('message', async function (topic, message) {
     try {
       const data = JSON.parse(message.toString());
       switch (topic) {
-        case 'topic/sensors/acceleration':
+        case 'sensors/acceleration':
           await saveAccelerationData(data);
           break;
-        case 'topic/sensors/sensor_PH':
+        case 'sensors/sensor_PH':
           await saveSensorPHData(data);
           break;
-        case 'topic/sensors/turbidity':
+        case 'sensors/turbidity':
           await saveTurbidityData(data);
           break;
-        case 'topic/sensors/temperature':
+        case 'sensors/temperature':
           await saveTemperatureData(data);
           break;
         default:
